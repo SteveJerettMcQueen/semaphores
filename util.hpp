@@ -10,12 +10,9 @@
 
 // Structure for producer and consumer threads
 struct content_struct{
-    char vowel;
-    char vowel2;
     char message;
     char buffer[3];
-    std::vector<char> letters;
-    std::vector<char> vowels;
+    std::vector<char> letters, vowels;
     std::map<char, int> location_map;
 };
 

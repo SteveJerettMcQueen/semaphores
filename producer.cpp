@@ -29,12 +29,12 @@ void *prod_runner(void *arg){
     
     // Randomly pick a letter from the alphabet
     srand((int)time(0));
-    char letter = arg_struct->letters[(rand() % 26)];
+    char letter = arg_struct->letters[(rand() % arg_struct->letters.size())];
     arg_struct->message = letter;
     
     // Producer writes content to the buffer 
     sprintf (arg_struct->buffer, "%c", arg_struct->message);
     std::cout << "Producer: " << arg_struct->buffer << std::endl;
-    
+
     pthread_exit(0);
 }
