@@ -1,5 +1,6 @@
 #include <string>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "consumer.hpp"
 #include "producer.hpp"
@@ -8,6 +9,19 @@
 int main(){
     
     struct content_struct cs;
+
+    // Semaphores
+    sem_t sem;
+    sem_init(&sem, 0, 1);// Number of threads: binary
+    cs.sem = sem;
+
+    sem_t empty;
+    sem_init(&empty, 0, cs.buffer.size());// Init to the size of the buffer
+    cs.empty = empty;
+
+    sem_t full;
+    sem_init(&full, 0, 0);
+    cs.full = full;
 
     // Producer thread
     pthread_t producer;
@@ -25,4 +39,11 @@ int main(){
     pthread_join(producer, NULL);
     pthread_join(consumer, NULL);
     
+    // Destroy semaphores
+    sem_destroy(&sem);
+    sem_destroy(&empty);
+    sem_destroy(&full);
+
+    
+    return 0;
 }

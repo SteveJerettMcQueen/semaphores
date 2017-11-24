@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <semaphore.h>
+
 #include "consumer.hpp"
 #include "util.hpp"
 
@@ -33,7 +35,17 @@ void *con_runner(void *arg){
     // Consumer reads content from the buffer and finds
     // location of the letter in the alphabet
     for(int i = 0; i < arg_struct->buffer.size(); i++){
+        
+        sem_wait(&arg_struct->full);
+        sem_wait(&arg_struct->sem);
+        
+        // Enter critical section on shared resource
         char letter = arg_struct->buffer.at(i);
+        // Exit critical section on shared resource
+        
+        sem_post(&arg_struct->sem);
+        sem_post(&arg_struct->empty);
+
         int location = arg_struct->location_map.find(letter)->second + 1;
         bool location_is_even = (location % 2 == 0);
         
@@ -110,8 +122,7 @@ void *con_runner(void *arg){
         }
         
         std::cout << "-------------------------------------------" << std::endl;
-
     }
-    
+
     pthread_exit(0);
 }
