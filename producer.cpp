@@ -22,15 +22,14 @@ void *prod_runner(void *arg){
     };
 
     arg_struct->vowels = {'A', 'E', 'I', 'O', 'U'};
-    // Exit critical section of shared resource
-    
-    pthread_mutex_unlock(&arg_struct->mutex);
 
-    // Store corresponding letters in a map
     for(int i = 0; i < arg_struct->letters.size(); i++){
         arg_struct->location_map.insert(std::pair<char, int> (arg_struct->letters[i], i));
     }
-    
+    // Exit critical section of shared resource
+
+    pthread_mutex_unlock(&arg_struct->mutex);
+
     // Producer writes content to the buffer 
     srand((int)time(0));
     for(int i = 0; i < arg_struct->buffer.size(); i++){
