@@ -3,9 +3,6 @@
 #include <string>
 #include <vector>
 
-#include <math.h>
-#include <pthread.h>
-
 #include "consumer.hpp"
 #include "util.hpp"
 
@@ -18,24 +15,16 @@ char find_nearest_vowel(std::vector<char> range, std::vector<char> vowels){
     if (result != vowels.end()){
         int i = distance(range.begin(), result); 
         return range[i];
-    } else if(result == vowels.end()){
-        // // If the letter is greater than 'U' in the alphabet
-        // // then the next vowel will always be 'A' because 'A'
-        // // is the first vowel in the alphabet
-        return 'A'; 
-        
-    }
+    } 
     
 }
 
 int find_largest_distance(int d, int d2){
-    if(d > d2){
+    if(d >= d2){
         return d;
-    } else if(d < d2){
-        return d2;
     } else {
-        return d;
-    }
+        return d2;
+    } 
 }
 
 void *con_runner(void *arg){
@@ -43,62 +32,85 @@ void *con_runner(void *arg){
 
     // Consumer reads content from the buffer and finds
     // location of the letter in the alphabet
-    char letter = arg_struct->buffer[0];
-    int location = arg_struct->location_map.find(letter)->second + 1;
-    bool location_is_even = (location % 2 == 0);
+    for(int i = 0; i < arg_struct->buffer.size(); i++){
+        char letter = arg_struct->buffer.at(i);
+        int location = arg_struct->location_map.find(letter)->second + 1;
+        bool location_is_even = (location % 2 == 0);
+        
+        if(location_is_even){
+            
+            // Consumer message to build
+            std::string con_msg, con_msg2;
+            
+            // Split vector into 2 ranges: left & right of the letter
+            std::vector<char>::iterator lb = arg_struct->letters.begin();
+            std::vector<char>::iterator le = arg_struct->letters.begin() + (location - 1);
+            std::vector<char> left_range(lb, le);
+            std::reverse(left_range.begin(), left_range.end());
+            
+            std::vector<char>::iterator rb = arg_struct->letters.begin() + location;
+            std::vector<char>::iterator re = arg_struct->letters.end();
+            std::vector<char> right_range(rb, re);
+            
+            char v1, v2;
+            int dist_v1, dist_v2, lgst_dist;
+            std::vector<char>::iterator it; // Iterator used for finding distance
+            
+            // Special Case for letters 'V', 'X', & 'Z'
+            if(location == 22 || location == 24 || location == 26){
+                
+                v1 = find_nearest_vowel(left_range, arg_struct->vowels);
+                it = find(left_range.begin(),left_range.end(), v1);
+                dist_v1 = distance(left_range.begin(), it) + 1;
+                
+                // The next nearest vowel to the right will always be 'A' 
+                // for letters in even a location after the last vowel 
+                // in the alphabet 'U' 
+                v2 = 'A';
+                it = find(right_range.begin(),right_range.end(), v2);
+                dist_v2 = distance(right_range.begin(), it) + 1;
+                
+            } else {
+                
+                v1 = find_nearest_vowel(left_range, arg_struct->vowels);
+                it = find(left_range.begin(),left_range.end(), v1);
+                dist_v1 = distance(left_range.begin(), it) + 1;
+                
+                v2 = find_nearest_vowel(right_range, arg_struct->vowels);
+                it = find(right_range.begin(),right_range.end(), v2);
+                dist_v2 = distance(right_range.begin(), it) + 1;
+                
+            }
     
-    if(location_is_even){
-        
-        // Consumer message to build
-        std::string con_msg;
-        
-        // Iterator used for finding distance         
-        std::vector<char>::iterator it;
-        
-        // Find closest vowel to left of the letter & distance
-        std::vector<char>::iterator b = arg_struct->letters.begin();
-        std::vector<char>::iterator e = arg_struct->letters.begin() + (location - 1);
-        std::vector<char> left_range(b, e);
-        std::reverse(left_range.begin(), left_range.end());
-        char v1 = find_nearest_vowel(left_range, arg_struct->vowels);
-        it = find(left_range.begin(),left_range.end(), v1);
-        int dist_v1 = distance(left_range.begin(), it) + 1;
-        
-        // Find closest vowel to right of the letter
-        std::vector<char>::iterator b2 = arg_struct->letters.begin() + location;
-        std::vector<char>::iterator e2 = arg_struct->letters.end();
-        std::vector<char> right_range(b2, e2);
-        char v2 = find_nearest_vowel(right_range, arg_struct->vowels);
-        it = find(right_range.begin(),right_range.end(), v2);
-        int dist_v2 = distance(right_range.begin(), it) + 1;
+            // Build messages
+            con_msg = con_msg + v1 + letter + v2;
+            con_msg2 = con_msg;
+            
+            if(dist_v1 >= dist_v2){
+                con_msg2 = v1 + con_msg2 + v1;
+            } else {
+                con_msg2 = v2 + con_msg2 + v2;
+            } 
+            
+            // Find the largest distance from the letter
+            lgst_dist = find_largest_distance(dist_v1, dist_v2);
+            
+            // Display information
+            std::cout << "Consumer: " << letter << std::endl;
+            std::cout << "S: " << con_msg << ";" << std::endl;
+            std::cout << "T: " << con_msg2 << ";" << std::endl;
+            std::cout << "v1-> (" << v1 << "); c-> (" << letter << "); v2-> (" << v2 << ");" <<std::endl;
+            std::cout << "Dv1 = " << dist_v1 <<  " : Dv2 = " << dist_v2 << ";" << std::endl;
+            std::cout << "Largest Distance = " << lgst_dist << ";" << std::endl;
 
-        // Find the largest distance from the letter
-        int largest_dist = find_largest_distance(dist_v1, dist_v2);
-
-        // Build messages
-        con_msg = con_msg + v1 + letter + v2;
-        std::string s = con_msg;
-        std::string t = s;
-        
-        if(dist_v1 > dist_v2){
-            t = v1 + t + v1;
-        } else if(dist_v1 < dist_v2){
-            t = v2 + t + v2;
         } else {
-            t = v1 + t + v1;
+            
+            std::cout << "Consumer: " << letter << " Location: " << location << std::endl;
+            
         }
         
-        // Display information
-        std::cout << "S: " << s << std::endl;
-        std::cout << "T: " << t << std::endl;
-        std::cout << "v1: " << v1 << " c: " << letter << " v2: " << v2 << std::endl;
-        std::cout << "Dv1: " << dist_v1 <<  " Dv2: " << dist_v2 << std::endl;
-        std::cout << "Largest Distance: " << largest_dist << std::endl;
+        std::cout << "-------------------------------------------" << std::endl;
 
-    } else {
-        
-        std::cout << "Consumer: " << letter << " Location: " << location << std::endl;
-        
     }
     
     pthread_exit(0);

@@ -1,11 +1,6 @@
-#include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <string>
-#include <vector>
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <pthread.h>
 
 #include "producer.hpp"
@@ -27,14 +22,16 @@ void *prod_runner(void *arg){
         arg_struct->location_map.insert(std::pair<char, int> (arg_struct->letters[i], i));
     }
     
-    // Randomly pick a letter from the alphabet
     srand((int)time(0));
-    char letter = arg_struct->letters[(rand() % arg_struct->letters.size())];
-    arg_struct->message = letter;
-    
-    // Producer writes content to the buffer 
-    sprintf (arg_struct->buffer, "%c", arg_struct->message);
-    std::cout << "Producer: " << arg_struct->buffer << std::endl;
+    for(int i = 0; i < arg_struct->buffer.size(); i++){
+        // Randomly pick a letter from the alphabet
+        int rand_index = (rand() % arg_struct->letters.size());
+        char letter = arg_struct->letters[rand_index];
+
+        // Producer writes content to the buffer 
+        arg_struct->buffer.at(i) = letter;
+        std::cout << "Producer: " << arg_struct->buffer.at(i) << std::endl;
+    }
 
     pthread_exit(0);
 }
