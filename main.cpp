@@ -1,4 +1,4 @@
-#include <string>
+#include <iostream>
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -9,6 +9,9 @@
 int main(){
     
     struct content_struct cs;
+
+    // Initalize mutex
+    cs.mutex = PTHREAD_MUTEX_INITIALIZER;
 
     // Semaphores
     sem_t sem;
@@ -44,6 +47,5 @@ int main(){
     sem_destroy(&empty);
     sem_destroy(&full);
 
-    
     return 0;
 }

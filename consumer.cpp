@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -32,8 +33,10 @@ int find_largest_distance(int d, int d2){
 void *con_runner(void *arg){
     struct content_struct *arg_struct = (struct content_struct*) arg;
 
-    // Consumer reads content from the buffer and finds
-    // location of the letter in the alphabet
+    std::ostringstream os;
+
+    // Reads the content from the buffer and finds
+    // the location of the letter in the alphabet
     for(int i = 0; i < arg_struct->buffer.size(); i++){
         
         sem_wait(&arg_struct->full);
@@ -107,22 +110,28 @@ void *con_runner(void *arg){
             // Find the largest distance from the letter
             lgst_dist = find_largest_distance(dist_v1, dist_v2);
             
-            // Display information
-            std::cout << "Consumer: " << letter << std::endl;
-            std::cout << "S: " << con_msg << ";" << std::endl;
-            std::cout << "T: " << con_msg2 << ";" << std::endl;
-            std::cout << "v1-> (" << v1 << "); c-> (" << letter << "); v2-> (" << v2 << ");" <<std::endl;
-            std::cout << "Dv1 = " << dist_v1 <<  " : Dv2 = " << dist_v2 << ";" << std::endl;
-            std::cout << "Largest Distance = " << lgst_dist << ";" << std::endl;
+            // Record information
+            os << "Consumer[" << i <<"]: " << letter << std::endl;
+            os << "S: " << con_msg << ";" << std::endl;
+            os << "T: " << con_msg2 << ";" << std::endl;
+            os << "v1-> (" << v1 << "); c-> (" << letter << "); v2-> (" << v2 << ");" <<std::endl;
+            os << "Dv1 = " << dist_v1 <<  " : Dv2 = " << dist_v2 << ";" << std::endl;
+            os << "Largest Distance = " << lgst_dist << ";" << std::endl;
 
         } else {
             
-            std::cout << "Consumer: " << letter << " Location: " << location << std::endl;
+            os << "Consumer[" << i <<"]: " << letter << std::endl;
             
         }
         
-        std::cout << "-------------------------------------------" << std::endl;
+            os << "------------------------------------------------" << std::endl;
+        
     }
 
-    pthread_exit(0);
+    // Writes and read status to shared variable
+    pthread_mutex_lock(&arg_struct->mutex);
+    arg_struct->status = os.str();
+    std::cout<< arg_struct->status << std::endl;
+    pthread_mutex_unlock(&arg_struct->mutex);
+
 }

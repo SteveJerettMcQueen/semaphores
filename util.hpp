@@ -3,6 +3,7 @@
 
 #include <array>
 #include <map>
+#include <string>
 #include <vector>
 
 #include <pthread.h>
@@ -17,6 +18,7 @@ struct content_struct{
     std::array<char,3> buffer;
     std::vector<char> letters, vowels;
     std::map<char, int> location_map;
+    std::string status;
 };
 
 #endif
