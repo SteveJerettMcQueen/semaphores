@@ -1,1 +1,2 @@
-g++ -pthread -std=c++11 *.cpp
+g++ -pthread -std=c++ll *.cpp
+time ./a.outg

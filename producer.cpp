@@ -53,7 +53,6 @@ void *prod_runner(void *arg){
         
         sem_post(&arg_struct->sem);
         sem_post(&arg_struct->full);
-
     }
     
     // Reads status to shared variable
